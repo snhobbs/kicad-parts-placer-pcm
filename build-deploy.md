@@ -3,7 +3,7 @@ The workflows are currently not working so here's the manual method:
 
 + Bump the version to match the tag:
 ```python
-bumpversion --current-version 0.1.3 patch pcm/metadata_template.json kicadtestpoints/plugin.py kicadtestpoints/resource/_version.py 
+bumpversion --current-version 0.1.3 patch pcm/metadata_template.json kicadtestpoints/plugin.py kicadtestpoints/resource/_version.py
 ```
 + Make the tag
 + Run the build script

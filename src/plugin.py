@@ -18,12 +18,15 @@ _log.setLevel(logging.DEBUG)
 
 _board = None
 
+
 def set_board(board):
     global _board
     _board = board
 
+
 def get_board():
     return _board
+
 
 class Settings:
     """
@@ -33,8 +36,8 @@ class Settings:
     def __init__(self):
         self.use_aux_origin: bool = False
         self.group_name = "parts placer"
-        self.mirror=False
-        self.group=False
+        self.mirror = False
+        self.group = False
 
 
 class Meta:
@@ -165,7 +168,7 @@ class MyPanel(wx.Panel):
             print("File Path:", file_path)
 
             board = get_board()
-            origin = (0,0)
+            origin = (0, 0)
             if self.settings.use_aux_origin:
                 ds = board.GetDesignSettings()
                 origin = pcbnew.ToMM(ds.GetAuxOrigin())
@@ -176,14 +179,15 @@ class MyPanel(wx.Panel):
             print(components_df)
 
             board_out = kicad_parts_placer_.place_parts(
-                board,
-                components_df = components_df,
-                origin=origin)
+                board, components_df=components_df, origin=origin
+            )
 
             group_name = self.settings.group_name
             if self.settings.group:
                 _log.debug("GROUPING PARTS")
-                board = kicad_parts_placer_.group_parts(board, components_df, group_name=group_name)
+                board = kicad_parts_placer_.group_parts(
+                    board, components_df, group_name=group_name
+                )
 
             pcbnew.SaveBoard(output_file_path.as_posix(), board_out)
 
@@ -191,7 +195,9 @@ class MyPanel(wx.Panel):
             # self.GetParent().ShowSuccessPanel()
         else:
             wx.MessageBox(
-                "Please select an input and output file.", "Error", wx.OK | wx.ICON_ERROR
+                "Please select an input and output file.",
+                "Error",
+                wx.OK | wx.ICON_ERROR,
             )
 
     def on_cancel(self, event):
@@ -311,6 +317,7 @@ if __name__ == "__main__":
     logging.basicConfig()
     _log.setLevel(logging.DEBUG)
     import sys
+
     if len(sys.argv) > 1:
         set_board(pcbnew.LoadBoard(sys.argv[1]))
     app = wx.App()

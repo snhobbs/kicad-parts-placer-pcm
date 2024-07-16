@@ -1,4 +1,3 @@
-import os
 import sys
 import threading
 import time
@@ -8,10 +7,12 @@ import wx
 import wx.aui
 
 from .plugin import Plugin, Meta
+
 plugin = Plugin()
 plugin.register()
 
-icon_ = Path(__file__) / 'icon-24x24.png'
+icon_ = Path(__file__) / "icon-24x24.png"
+
 
 def check_for_button():
     # From Miles McCoo's blog
@@ -32,6 +33,7 @@ def check_for_button():
     button_wx_item_id = 0
 
     from pcbnew import ID_H_TOOLBAR
+
     while True:
         time.sleep(1)
         pcbnew_window = find_pcbnew_window()
@@ -42,15 +44,20 @@ def check_for_button():
         if button_wx_item_id == 0 or not top_tb.FindTool(button_wx_item_id):
             top_tb.AddSeparator()
             button_wx_item_id = wx.NewId()
-            top_tb.AddTool(button_wx_item_id, Meta.toolname, bm,
-                           Meta.short_desciption, wx.ITEM_NORMAL)
+            top_tb.AddTool(
+                button_wx_item_id,
+                Meta.toolname,
+                bm,
+                Meta.short_desciption,
+                wx.ITEM_NORMAL,
+            )
             top_tb.Bind(wx.EVT_TOOL, callback, id=button_wx_item_id)
             top_tb.Realize()
 
 
 # Add a button the hacky way if plugin button is not supported
 # in pcbnew, unless this is linux.
-if not plugin.pcbnew_icon_support and not sys.platform.startswith('linux'):
+if not plugin.pcbnew_icon_support and not sys.platform.startswith("linux"):
     t = threading.Thread(target=check_for_button)
     t.daemon = True
     t.start()
