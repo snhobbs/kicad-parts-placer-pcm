@@ -11,6 +11,8 @@ from .plugin import Plugin, Meta
 plugin = Plugin()
 plugin.register()
 
+icon_ = Path(__file__) / 'icon-24x24.png'
+
 def check_for_button():
     # From Miles McCoo's blog
     # https://kicad.mmccoo.com/2017/03/05/adding-your-own-command-buttons-to-the-pcbnew-gui/
@@ -26,7 +28,7 @@ def check_for_button():
 
     while not wx.GetApp():
         time.sleep(1)
-    bm = wx.Bitmap((Path(__file__) / 'icon.png').as_posix(), wx.BITMAP_TYPE_PNG)
+    bm = wx.Bitmap(icon_.as_posix(), wx.BITMAP_TYPE_PNG)
     button_wx_item_id = 0
 
     from pcbnew import ID_H_TOOLBAR
