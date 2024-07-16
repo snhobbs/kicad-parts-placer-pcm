@@ -27,7 +27,11 @@
         {
           "version": "0.1.0",
           "status": "stable",
-          "kicad_version": "8.0"
+          "kicad_version": "8.0",
+          "download_url": "https://github.com/snhobbs/kicad-parts-placer-pcm/releases/download/v0.1.0/kicad-parts-placer-0.1.0-pcm.zip",
+          "download_sha256": "368bae2805e1163e1ed516f1ace2f487cfc80d8526818c5aeb8fa93972d437d5",
+          "download_size": 16623,
+          "install_size": 36683
         }
     ]
 }
