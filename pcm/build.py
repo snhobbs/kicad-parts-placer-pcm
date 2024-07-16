@@ -23,7 +23,7 @@ os.makedirs(build_path / "plugin" / "resources")
 
 # Copy plugin
 shutil.copytree(src_path, build_path / "plugin" / "plugins")
-shutil.copy(src_path / "icon.png",build_path / "plugin" / "resources")
+shutil.copy(src_path / "icon.png", build_path / "plugin" / "resources")
 
 # Clean out any __pycache__ or .pyc files (https://stackoverflow.com/a/41386937)
 [p.unlink() for p in build_path.rglob("*.py[co]")]
@@ -55,7 +55,7 @@ else:
 md["versions"][0].update(
     {
         "version": verstr,
-        "download_url": "https://github.com/snhobbs/kicad-parts-placer-pcm/releases/download/v{0}/kicad-parts-placer-{0}-pcm.zip".format(
+        "download_url": "https://github.com/TheJigsApp/kicad-parts-placer-pcm/releases/download/v{0}/kicad-parts-placer-{0}-pcm.zip".format(
             verstr
         ),
     }

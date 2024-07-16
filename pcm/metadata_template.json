@@ -28,10 +28,7 @@
           "version": "0.1.0",
           "status": "stable",
           "kicad_version": "8.0",
-          "download_url": "https://github.com/TheJigsApp/kicad-parts-placer-pcm/releases/download/v0.1.0/kicad-parts-placer-0.1.0-pcm.zip",
-          "download_sha256": "11bf5bad00f15b5590448a7ba5c95910b3aa0252cdd15dce06a7224b232a8158",
-          "download_size": 16708,
-          "install_size": 36835
+          "download_url": "https://github.com/TheJigsApp/kicad-parts-placer-pcm/releases/download/v0.1.0/kicad-parts-placer-0.1.0-pcm.zip"
         }
     ]
 }
