@@ -19,10 +19,11 @@ try:
 except FileNotFoundError:
     pass
 os.makedirs(build_path / "plugin")
+os.makedirs(build_path / "plugin" / "resources")
 
 # Copy plugin
 shutil.copytree(src_path, build_path / "plugin" / "plugins")
-shutil.copytree(resources_path, build_path / "plugin" / "resources")
+shutil.copy(src_path / "icon.png",build_path / "plugin" / "resources")
 
 # Clean out any __pycache__ or .pyc files (https://stackoverflow.com/a/41386937)
 [p.unlink() for p in build_path.rglob("*.py[co]")]
