@@ -1,52 +1,48 @@
 import os
-from os import path
 import shutil
-import pathlib
+from pathlib import Path
 import json
 import re
 
-src_path = path.join(path.dirname(__file__), "..", "src")
-version_path = path.join(src_path, "resource", "_version.py")
+src_path = (Path(__file__).parent.parent / "src").absolute()
+version_path = src_path / "_version.py"
 
-metadata_template = path.join(path.dirname(__file__), "metadata_template.json")
-resources_path = path.join(path.dirname(__file__), "resources")
+metadata_template = Path(__file__).parent / "metadata_template.json"
+build_path = Path("build").absolute()
 
-build_path = path.join("build")
+icons_path = src_path.parent / "icons"
+resources_path = icons_path
 
 # Delete build and recreate
 try:
     shutil.rmtree(build_path)
 except FileNotFoundError:
     pass
-os.mkdir(build_path)
-os.mkdir(path.join(build_path, "plugin"))
-os.chdir(build_path)
+os.makedirs(build_path / "plugin")
 
 # Copy plugin
-shutil.copytree(src_path, path.join("plugin", "plugins"))
+shutil.copytree(src_path, build_path / "plugin" / "plugins")
+shutil.copytree(resources_path, build_path / "plugin" / "resources")
 
 # Clean out any __pycache__ or .pyc files (https://stackoverflow.com/a/41386937)
-[p.unlink() for p in pathlib.Path(".").rglob("*.py[co]")]
-[p.rmdir() for p in pathlib.Path(".").rglob("__pycache__")]
+[p.unlink() for p in build_path.rglob("*.py[co]")]
+[p.rmdir() for p in build_path.rglob("__pycache__")]
 
 # Don't include test_dialog.py. It isn't needed. It's a developer thing.
-[p.unlink() for p in pathlib.Path(".").rglob("test_dialog.py")]
-
-# Copy icon
-shutil.copytree(resources_path, path.join("plugin", "resources"))
+[p.unlink() for p in build_path.rglob("test_dialog.py")]
 
 # Copy metadata
-metadata = path.join("plugin", "metadata.json")
+metadata = build_path / "plugin" / "metadata.json"
 shutil.copy(metadata_template, metadata)
 
 # Load up json script
-with open(metadata) as f:
+with metadata.open("r") as f:
     md = json.load(f)
 
 # Get version from resource/_version.py
 # https://stackoverflow.com/a/7071358
 
-verstrline = open(version_path, "rt").read()
+verstrline = version_path.open("rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)
 if mo:
@@ -65,12 +61,13 @@ md["versions"][0].update(
 )
 
 # Update metadata.json
-with open(metadata, "w") as of:
+with metadata.open("w") as of:
     json.dump(md, of, indent=2)
 
 # Zip all files
-zip_file = "kicad-parts-placer-{0}-pcm.zip".format(md["versions"][0]["version"])
-shutil.make_archive(pathlib.Path(zip_file).stem, "zip", "plugin")
+pcm_name = "kicad-parts-placer-{0}-pcm".format(md["versions"][0]["version"])
+pcm_path = build_path / pcm_name
+zip_file = shutil.make_archive(pcm_path, "zip", "plugin")
 
 # Rename the plugin directory so we can upload it as an artifact - and avoid the double-zip
-shutil.move("plugin", "kicad-parts-placer-{0}-pcm".format(md["versions"][0]["version"]))
+shutil.move(build_path / "plugin", pcm_path)
