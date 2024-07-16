@@ -3,7 +3,7 @@
     "name": "Parts Placer",
     "description": "Place parts from a spreadsheet",
     "description_full": "",
-    "identifier": "com.github.TheJigsApp.kicad-parts-placer",
+    "identifier": "com.github.TheJigsApp.kicad-parts-placer-pcm",
     "type": "plugin",
     "author": {
       "name": "The JigsApp",

@@ -6,15 +6,12 @@ import wx.lib.buttons as buttons
 from pathlib import Path
 import pcbnew
 import sys
+import pandas as pd
+
 
 sys.path.append(Path(__file__).parent.absolute().as_posix())
 
-from kicad_parts_placer_ import (
-    get_pads_by_property,
-    build_test_point_report,
-    write_csv,
-    Settings,
-)
+import kicad_parts_placer_
 
 _log = logging.getLogger("kicad_partsplacer-pcm")
 _log.setLevel(logging.DEBUG)
@@ -28,16 +25,26 @@ def set_board(board):
 def get_board():
     return _board
 
+class Settings:
+    """
+    All the options that can be passed
+    """
+
+    def __init__(self):
+        self.use_aux_origin: bool = False
+        self.group_name = "parts placer"
+        self.mirror=False
+        self.group=False
+
+
 class Meta:
     toolname = "kicadpartsplacer"
     title = "Test Point Report"
-    body = """Choose test points by setting the desired pads 'Fabrication Property' to 'Test Point Pad'. The output default is in the JigsApp test point report style.
-
-Coordinates are Cartesian with x increasing to the right and y increasing upwards. For correct agreement with generated gerbers and the component placement, ensure the origin used is consistent.
+    body = """
     """
-    about_text = "This plugin generates TheJigsApp style test points reports. Test more, worry less."
-    short_description = "TheJigsApp KiCAD Test Point Report"
-    frame_title = "TheJigsApp KiCAD Test Point Report"
+    about_text = ""
+    short_description = "Parts Placer"
+    frame_title = ""
     website = "https://www.thejigsapp.com"
     version = "0.1.9"
 
@@ -76,16 +83,25 @@ class MyPanel(wx.Panel):
             if wd.exists():
                 dir_ = wd.parent
         default_file_path = dir_ / f"{Meta.toolname}-report.csv"
+        default_board_file_path = dir_ / f"{Meta.toolname}.kicad_pcb"
 
-        # File output selector
-        file_output_label = wx.StaticText(self, label="File Output:")
-        self.file_output_selector = wx.FilePickerCtrl(
+        file_label = wx.StaticText(self, label="File Input:")
+        self.file_selector = wx.FilePickerCtrl(
             self,
             style=wx.FLP_SAVE | wx.FLP_USE_TEXTCTRL,
             wildcard="CSV files (*.csv)|*.csv",
             path=default_file_path.as_posix(),
         )
-        self.file_output_selector.SetPath(default_file_path.as_posix())
+        self.file_selector.SetPath(default_file_path.as_posix())
+
+        file_output_label = wx.StaticText(self, label="File Output:")
+        self.file_output_selector = wx.FilePickerCtrl(
+            self,
+            style=wx.FLP_SAVE | wx.FLP_USE_TEXTCTRL,
+            wildcard="KiCAD PCB (*.kicad_pcb)|*.kicad_pcb",
+            path=default_board_file_path.as_posix(),
+        )
+        self.file_output_selector.SetPath(default_board_file_path.as_posix())
 
         # Lorem Ipsum text
         lorem_text = wx.StaticText(self, label=Meta.body)
@@ -108,15 +124,25 @@ class MyPanel(wx.Panel):
         self.use_aux_origin_cb.SetValue(True)
         self.settings.use_aux_origin = self.use_aux_origin_cb.GetValue()
 
+        # Group
+        self.group_parts_cb = wx.CheckBox(self, label="Group Parts")
+        self.group_parts_cb.SetValue(True)
+        self.settings.group = self.group_parts_cb.GetValue()
+
         self.Bind(wx.EVT_CHECKBOX, self.on_checkbox_toggle)
 
         # Sizer for layout
         # sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.use_aux_origin_cb, 0, wx.ALL, 10)
+        sizer.Add(self.group_parts_cb, 0, wx.ALL, 10)
+
+        sizer.Add(file_label, 0, wx.ALL, 5)
+        sizer.Add(self.file_selector, 0, wx.EXPAND | wx.ALL, 5)
 
         sizer.Add(file_output_label, 0, wx.ALL, 5)
         sizer.Add(self.file_output_selector, 0, wx.EXPAND | wx.ALL, 5)
+
         sizer.Add(lorem_text, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
 
@@ -126,31 +152,46 @@ class MyPanel(wx.Panel):
         self.Layout()
 
     def on_checkbox_toggle(self, event):
-        checkbox = event.GetEventObject()
-        self.settings.use_aux_origin = checkbox.GetValue()
+        self.settings.use_aux_origin = self.use_aux_origin_cb.GetValue()
+        self.settings.group = self.group_parts_cb.GetValue()
+        _log.debug(self.settings.use_aux_origin)
+        _log.debug(self.settings.group)
 
     def on_submit(self, event):
-        file_path = Path(self.file_output_selector.GetPath())
-        if file_path:
+        file_path = Path(self.file_selector.GetPath())
+        output_file_path = Path(self.file_output_selector.GetPath())
+        if file_path and output_file_path:
             print("Submitting...")
             print("File Path:", file_path)
 
             board = get_board()
-            pads = get_pads_by_property(board)
-            data = build_test_point_report(board, pads=pads, settings=self.settings)
-            if not data:
-                wx.MessageBox(
-                    "No test point pads found, have you set any?",
-                    "Error",
-                    wx.OK | wx.ICON_ERROR,
-                )
-            else:
-                write_csv(data, filename=file_path)
-                self.GetTopLevelParent().EndModal(wx.ID_OK)
-                # self.GetParent().ShowSuccessPanel()
+            origin = (0,0)
+            if self.settings.use_aux_origin:
+                ds = board.GetDesignSettings()
+                origin = pcbnew.ToMM(ds.GetAuxOrigin())
+
+            pcbnew.SaveBoard(output_file_path.as_posix(), board)
+            board = pcbnew.LoadBoard(output_file_path.as_posix())
+            components_df = pd.read_csv(file_path)
+            print(components_df)
+
+            board_out = kicad_parts_placer_.place_parts(
+                board,
+                components_df = components_df,
+                origin=origin)
+
+            group_name = self.settings.group_name
+            if self.settings.group:
+                _log.debug("GROUPING PARTS")
+                board = kicad_parts_placer_.group_parts(board, components_df, group_name=group_name)
+
+            pcbnew.SaveBoard(output_file_path.as_posix(), board_out)
+
+            self.GetTopLevelParent().EndModal(wx.ID_OK)
+            # self.GetParent().ShowSuccessPanel()
         else:
             wx.MessageBox(
-                "Please select a file output path.", "Error", wx.OK | wx.ICON_ERROR
+                "Please select an input and output file.", "Error", wx.OK | wx.ICON_ERROR
             )
 
     def on_cancel(self, event):

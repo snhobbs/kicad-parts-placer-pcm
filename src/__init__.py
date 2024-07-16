@@ -2,6 +2,7 @@ import os
 import sys
 import threading
 import time
+from pathlib import Path
 
 import wx
 import wx.aui
@@ -25,7 +26,7 @@ def check_for_button():
 
     while not wx.GetApp():
         time.sleep(1)
-    bm = wx.Bitmap(os.path.join(os.path.dirname(__file__),'icon.png'), wx.BITMAP_TYPE_PNG)
+    bm = wx.Bitmap((Path(__file__) / 'icon.png').as_posix(), wx.BITMAP_TYPE_PNG)
     button_wx_item_id = 0
 
     from pcbnew import ID_H_TOOLBAR
