@@ -6,17 +6,28 @@ import wx.lib.buttons as buttons
 from pathlib import Path
 import pcbnew
 import sys
-import pandas as pd
+import csv
+import numpy as np
+# try:
+#    import pandas as pd
+# except ImportError:
 
 
 sys.path.append(Path(__file__).parent.absolute().as_posix())
 
+from dataframe_lite_ import DataFrame
 import kicad_parts_placer_
 
 _log = logging.getLogger("kicad_partsplacer-pcm")
 _log.setLevel(logging.DEBUG)
 
 _board = None
+
+
+def read_csv(f):
+    with open(f, newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        return DataFrame(list(reader))
 
 
 def set_board(board):
@@ -97,7 +108,7 @@ class MyPanel(wx.Panel):
         )
         self.file_selector.SetPath(default_file_path.as_posix())
 
-        file_output_label = wx.StaticText(self, label="File Output:")
+        file_output_label = wx.StaticText(self, label="File Backup:")
         self.file_output_selector = wx.FilePickerCtrl(
             self,
             style=wx.FLP_SAVE | wx.FLP_USE_TEXTCTRL,
@@ -168,17 +179,41 @@ class MyPanel(wx.Panel):
             print("File Path:", file_path)
 
             board = get_board()
+            if not board:
+                wx.MessageBox(
+                    "No board found",
+                    "Error",
+                    wx.OK | wx.ICON_ERROR,
+                )
+                return
+
             origin = (0, 0)
             if self.settings.use_aux_origin:
                 ds = board.GetDesignSettings()
                 origin = pcbnew.ToMM(ds.GetAuxOrigin())
 
+            _log.debug("Save Board")
             pcbnew.SaveBoard(output_file_path.as_posix(), board)
-            board = pcbnew.LoadBoard(output_file_path.as_posix())
-            components_df = pd.read_csv(file_path)
-            print(components_df)
 
-            board_out = kicad_parts_placer_.place_parts(
+            if not file_path.exists():
+                wx.MessageBox(
+                    "Spreadsheet not found",
+                    "Error",
+                    wx.OK | wx.ICON_ERROR,
+                )
+                return
+
+            components_df = read_csv(file_path)
+            components_df.columns = [pt.lower().strip() for pt in components_df.columns]
+            components_df["x"] = np.array(components_df["x"], dtype=float)
+            components_df["y"] = np.array(components_df["y"], dtype=float)
+
+            if "rotation" in components_df.columns:
+                components_df["rotation"] = np.array(
+                    components_df["rotation"], dtype=float
+                )
+
+            board = kicad_parts_placer_.place_parts(
                 board, components_df=components_df, origin=origin
             )
 
@@ -189,10 +224,16 @@ class MyPanel(wx.Panel):
                     board, components_df, group_name=group_name
                 )
 
-            pcbnew.SaveBoard(output_file_path.as_posix(), board_out)
+            wx.MessageBox(
+                "PCB Sucessfully Created",
+                "Success",
+                wx.OK,
+            )
 
             self.GetTopLevelParent().EndModal(wx.ID_OK)
-            # self.GetParent().ShowSuccessPanel()
+            # self.GetTopLevelParent().EndModal(wx.ID_CANCEL)
+            return
+
         else:
             wx.MessageBox(
                 "Please select an input and output file.",
@@ -287,6 +328,7 @@ class Plugin(pcbnew.ActionPlugin):
     def __init__(self):
         super().__init__()
 
+        _log.setLevel(logging.DEBUG)
         _log.debug("Loading kicad_partsplacer")
 
         self.logger = None
