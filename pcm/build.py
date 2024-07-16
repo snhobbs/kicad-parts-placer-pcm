@@ -67,7 +67,7 @@ with metadata.open("w") as of:
 # Zip all files
 pcm_name = "kicad-parts-placer-{0}-pcm".format(md["versions"][0]["version"])
 pcm_path = build_path / pcm_name
-zip_file = shutil.make_archive(pcm_path, "zip", "plugin")
+zip_file = shutil.make_archive(pcm_path, "zip", build_path / "plugin")
 
 # Rename the plugin directory so we can upload it as an artifact - and avoid the double-zip
 shutil.move(build_path / "plugin", pcm_path)
