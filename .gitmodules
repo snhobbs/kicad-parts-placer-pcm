@@ -1,0 +1,9 @@
+[submodule "libs/kicad-parts-placer"]
+	path = libs/kicad-parts-placer
+	url = git@github.com:snhobbs/kicad-parts-placer
+[submodule "libs/metadata"]
+	path = libs/metadata
+	url = git@gitlab.com:snhobbs/metadata.git
+[submodule "libs/kicad-addon-metadata"]
+	path = libs/kicad-addon-metadata
+	url = git@gitlab.com:snhobbs/metadata.git

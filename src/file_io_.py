@@ -1,0 +1,1 @@
+../libs/kicad-parts-placer/src/kicad_parts_placer/file_io.py

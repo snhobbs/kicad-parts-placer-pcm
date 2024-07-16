@@ -1,0 +1,33 @@
+{
+    "$schema": "https://go.kicad.org/pcm/schemas/v1",
+    "name": "Parts Placer",
+    "description": "Place parts from a spreadsheet",
+    "description_full": "",
+    "identifier": "com.github.TheJigsApp.kicad-parts-placer",
+    "type": "plugin",
+    "author": {
+      "name": "The JigsApp",
+      "contact": {
+        "web": "https://www.thejigsapp.com",
+        "github": "https://github.com/TheJigsApp"
+      }
+    },
+    "maintainer": {
+      "name": "The JigsApp",
+      "contact": {
+        "web": "https://www.thejigsapp.com",
+        "github": "https://github.com/TheJigsApp"
+      }
+    },
+    "license": "LGPL-2.1",
+    "resources": {
+      "homepage": "https://github.com/TheJigsApp/kicad-parts-placer-pcm"
+    },
+    "versions": [
+        {
+          "version": "0.1.8",
+          "status": "stable",
+          "kicad_version": "8.0"
+        }
+    ]
+}
