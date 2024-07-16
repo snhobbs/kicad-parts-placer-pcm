@@ -23,7 +23,9 @@ os.makedirs(build_path / "plugin" / "resources")
 
 # Copy plugin
 shutil.copytree(src_path, build_path / "plugin" / "plugins")
-shutil.copy(src_path / "icon.png", build_path / "plugin" / "resources")
+shutil.copy(
+    icons_path / "icon-64x64.png", build_path / "plugin" / "resources" / "icon.png"
+)
 
 # Clean out any __pycache__ or .pyc files (https://stackoverflow.com/a/41386937)
 [p.unlink() for p in build_path.rglob("*.py[co]")]

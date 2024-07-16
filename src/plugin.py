@@ -336,7 +336,7 @@ class Plugin(pcbnew.ActionPlugin):
         self.config_file = None
 
         self.name = Meta.title
-        self.category = "Read PCB"
+        self.category = "Write PCB"
         self.pcbnew_icon_support = hasattr(self, "show_toolbar_button")
         self.show_toolbar_button = True
         icon_dir = Path(__file__).parent
