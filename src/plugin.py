@@ -17,6 +17,7 @@ sys.path.append(Path(__file__).parent.absolute().as_posix())
 
 from dataframe_lite_ import DataFrame
 import kicad_parts_placer_
+import _version
 
 _log = logging.getLogger("kicad_partsplacer-pcm")
 _log.setLevel(logging.DEBUG)
@@ -60,7 +61,7 @@ class Meta:
     frame_title = "Parts Placer"
     short_description = "Parts Placer"
     website = "https://www.thejigsapp.com"
-    version = "0.1.0"
+    version = _version.__version__
 
 
 class SuccessPanel(wx.Panel):
