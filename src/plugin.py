@@ -39,14 +39,14 @@ class Settings:
 
 class Meta:
     toolname = "kicadpartsplacer"
-    title = "Test Point Report"
-    body = """
+    title = "Parts Placer"
+    body = """Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. Enforce a form-factor, keep mechanical placements under version control, and allow updating of a templated design based. Easily enforce grids or maintain test point patterns.
     """
-    about_text = ""
+    about_text = "Declaratively place components using a spreadsheet"
+    frame_title = "Parts Placer"
     short_description = "Parts Placer"
-    frame_title = ""
     website = "https://www.thejigsapp.com"
-    version = "0.1.9"
+    version = "0.1.0"
 
 
 class SuccessPanel(wx.Panel):
