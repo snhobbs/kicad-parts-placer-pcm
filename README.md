@@ -39,27 +39,22 @@ kicad-parts-placer --pcb example-placement.kicad_pcb --config centroid-all-pos.c
 
 ![Generated PCB](documents/placed_components_board.png)
 
+## Uses
+1. Matching Form Factor & Templates
+2. Critical component placement
+3. Keeping a symmetrical design symmetrical
+4. Automating parts placement
+5. Reuse of parts placement sections
 
 
-### Procedure: Existing board needs a tester
-1. Export test pad locations & type to a spreadsheet
-2. Plugin exports pad type, position, ref des, & value from DUT
-3. Extend the exported data, choosing the pogo pin footprint, mounting holes, connectors, etc. This is useful for the placement of mechanically important parts and form factor compliance.
-4. Batch load parts into schematic
-5. Complete schematic as needed, batch loading can be repeated or bom exported & checked for consistency
-6. Update PCB from schematic (f8)
-7. Run script which moves existing ref des to the location in config
+## Procedure: Matching Form Factor & Templates
+KiCAD templates are great but once you use one there are no guarantees that no components have moved. Use this plugin / tool to enforce the parts placement is correct.
 
-### Placing Test Pads to Reuse a Tester
-+ Can follow same workflow as making a tester or copy from the existing board that uses the tester
-+ Script should have a check placement function that is read only
+1. Export the centroid file of the template being used or generate a new description from the required positions
+2. Ensure the reference designators match in the new design
+3. Update PCB from schematic (f8)
+4. Run script which moves existing ref des to the location in config
 
-## Matching Form Factor
-+ Ensure position, type, & rotation match a certain description.
-+ The grouped components then only need 2 dimensions locked to a reference to get correct.
-
-## Critical component placement
-+ Exact placement of mounting holes, sensors, connectors, etc
 
 ## Notes
 + Place parts in pcb layout from a configuration table.
