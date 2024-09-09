@@ -1,0 +1,2 @@
+[tool.pylint.args]
+extension-pkg-allow-list=["wx", "numpy"]

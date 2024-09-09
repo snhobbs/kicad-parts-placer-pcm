@@ -1,13 +1,14 @@
 import logging
 import os
-import wx
-import wx.aui
-import wx.lib.buttons as buttons
-from pathlib import Path
-import pcbnew
 import sys
 import csv
+from pathlib import Path
+import wx
+import wx.aui
+from wx.lib import buttons
+import pcbnew
 import numpy as np
+
 # try:
 #    import pandas as pd
 # except ImportError:
@@ -26,17 +27,27 @@ _board = None
 
 
 def read_csv(f):
-    with open(f, newline="") as csvfile:
+    """
+    Basic CSV reading to dataframe
+    """
+    with open(f, newline="", encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         return DataFrame(list(reader))
 
 
 def set_board(board):
+    """
+    Sets the board global.
+    """
     global _board
     _board = board
 
 
 def get_board():
+    """
+    Use instead of pcbnew.GetBoard to allow
+    command line use.
+    """
     return _board
 
 
@@ -53,10 +64,15 @@ class Settings:
 
 
 class Meta:
+    """
+    Information about package
+    """
+
     toolname = "kicadpartsplacer"
     title = "Parts Placer"
-    body = """Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. Enforce a form-factor, keep mechanical placements under version control, and allow updating of a templated design based. Easily enforce grids or maintain test point patterns.
-    """
+    body = "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet.\
+            Enforce a form-factor, keep mechanical placements under version control, and allow \
+            updating of a templated design based. Easily enforce grids or maintain test point patterns."
     about_text = "Declaratively place components using a spreadsheet"
     frame_title = "Parts Placer"
     short_description = "Parts Placer"
@@ -65,6 +81,10 @@ class Meta:
 
 
 class SuccessPanel(wx.Panel):
+    """
+    Panel to show after the plugin has run successfully
+    """
+
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -83,6 +103,10 @@ def setattr_keywords(obj, name, value):
 
 
 class MyPanel(wx.Panel):
+    """
+    Primary panel
+    """
+
     def __init__(self, parent):
         _log.debug("MyPanel.__init__")
         super().__init__(parent)
@@ -166,88 +190,91 @@ class MyPanel(wx.Panel):
         # self.SetMinSize((1000, 1000))  # Set a minimum width and height for the frame
         self.Layout()
 
-    def on_checkbox_toggle(self, event):
+    def on_checkbox_toggle(self, _):
         self.settings.use_aux_origin = self.use_aux_origin_cb.GetValue()
         self.settings.group = self.group_parts_cb.GetValue()
         _log.debug(self.settings.use_aux_origin)
         _log.debug(self.settings.group)
 
-    def on_submit(self, event):
+    def on_submit(self, _):
         file_path = Path(self.file_selector.GetPath())
         output_file_path = Path(self.file_output_selector.GetPath())
-        if file_path and output_file_path:
-            print("Submitting...")
-            print("File Path:", file_path)
 
-            board = get_board()
-            if not board:
-                wx.MessageBox(
-                    "No board found",
-                    "Error",
-                    wx.OK | wx.ICON_ERROR,
-                )
-                return
-
-            origin = (0, 0)
-            if self.settings.use_aux_origin:
-                ds = board.GetDesignSettings()
-                origin = pcbnew.ToMM(ds.GetAuxOrigin())
-
-            _log.debug("Save Board")
-            pcbnew.SaveBoard(output_file_path.as_posix(), board)
-
-            if not file_path.exists():
-                wx.MessageBox(
-                    "Spreadsheet not found",
-                    "Error",
-                    wx.OK | wx.ICON_ERROR,
-                )
-                return
-
-            components_df = read_csv(file_path)
-            components_df.columns = [pt.lower().strip() for pt in components_df.columns]
-            components_df["x"] = np.array(components_df["x"], dtype=float)
-            components_df["y"] = np.array(components_df["y"], dtype=float)
-
-            if "rotation" in components_df.columns:
-                components_df["rotation"] = np.array(
-                    components_df["rotation"], dtype=float
-                )
-
-            board = kicad_parts_placer_.place_parts(
-                board, components_df=components_df, origin=origin
-            )
-
-            group_name = self.settings.group_name
-            if self.settings.group:
-                _log.debug("GROUPING PARTS")
-                board = kicad_parts_placer_.group_parts(
-                    board, components_df, group_name=group_name
-                )
-
-            wx.MessageBox(
-                "PCB Sucessfully Created",
-                "Success",
-                wx.OK,
-            )
-
-            self.GetTopLevelParent().EndModal(wx.ID_OK)
-            # self.GetTopLevelParent().EndModal(wx.ID_CANCEL)
-            return
-
-        else:
+        if not file_path or not output_file_path:
             wx.MessageBox(
                 "Please select an input and output file.",
                 "Error",
                 wx.OK | wx.ICON_ERROR,
             )
+            return
 
-    def on_cancel(self, event):
+        print("Submitting...")
+        print("File Path:", file_path)
+
+        board = get_board()
+        if not board:
+            wx.MessageBox(
+                "No board found",
+                "Error",
+                wx.OK | wx.ICON_ERROR,
+            )
+            return
+
+        origin = (0, 0)
+        if self.settings.use_aux_origin:
+            ds = board.GetDesignSettings()
+            origin = pcbnew.ToMM(ds.GetAuxOrigin())
+
+        _log.debug("Save Board")
+        pcbnew.SaveBoard(output_file_path.as_posix(), board)
+
+        if not file_path.exists():
+            wx.MessageBox(
+                "Spreadsheet not found",
+                "Error",
+                wx.OK | wx.ICON_ERROR,
+            )
+            return
+
+        components_df = read_csv(file_path)
+        components_df.columns = [pt.lower().strip() for pt in components_df.columns]
+        components_df["x"] = np.array(components_df["x"], dtype=float)
+        components_df["y"] = np.array(components_df["y"], dtype=float)
+
+        if "rotation" in components_df.columns:
+            components_df["rotation"] = np.array(components_df["rotation"], dtype=float)
+
+        board = kicad_parts_placer_.place_parts(
+            board, components_df=components_df, origin=origin
+        )
+
+        group_name = self.settings.group_name
+        if self.settings.group:
+            _log.debug("GROUPING PARTS")
+            board = kicad_parts_placer_.group_parts(
+                board, components_df, group_name=group_name
+            )
+
+        wx.MessageBox(
+            "PCB Sucessfully Created",
+            "Success",
+            wx.OK,
+        )
+
+        self.GetTopLevelParent().EndModal(wx.ID_OK)
+        # self.GetTopLevelParent().EndModal(wx.ID_CANCEL)
+        return
+
+    def on_cancel(self, _):
         print("Canceling...")
         self.GetTopLevelParent().EndModal(wx.ID_CANCEL)
 
 
 class AboutPanel(wx.Panel):
+    """
+    About panel tab
+    """
+
     def __init__(self, parent):
         super().__init__(parent)
         font = wx.Font(
@@ -284,6 +311,10 @@ class AboutPanel(wx.Panel):
 
 
 class MyDialog(wx.Dialog):
+    """
+    Top level GUI view
+    """
+
     def __init__(self, parent, title):
         super().__init__(
             parent, title=title, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
@@ -313,10 +344,10 @@ class MyDialog(wx.Dialog):
         self.GetSizer().Insert(0, self.success_panel)
         self.Layout()
 
-    def on_maximize(self, event):
+    def on_maximize(self, _):
         self.fit_to_screen()
 
-    def on_size(self, event):
+    def on_size(self, _):
         if self.IsMaximized():
             self.fit_to_screen()
 
@@ -341,6 +372,7 @@ class Plugin(pcbnew.ActionPlugin):
         self.show_toolbar_button = True
         icon_dir = Path(__file__).parent
         self.icon_file_name = (icon_dir / "icon.png").as_posix()
+        assert self.icon_file_name.exists()
         self.description = Meta.body
 
     def Run(self):
@@ -359,7 +391,6 @@ class Plugin(pcbnew.ActionPlugin):
 if __name__ == "__main__":
     logging.basicConfig()
     _log.setLevel(logging.DEBUG)
-    import sys
 
     if len(sys.argv) > 1:
         set_board(pcbnew.LoadBoard(sys.argv[1]))

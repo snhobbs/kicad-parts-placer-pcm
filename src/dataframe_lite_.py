@@ -4,6 +4,11 @@ import numpy as np
 
 
 class DataFrame:
+    """
+    Duplicates some functionality of pandas.DataFrame for use in environments where pandas
+    can't be installed.
+    """
+
     def __init__(self, data):
         out = {}
         if isinstance(data[0], dict):
@@ -29,12 +34,15 @@ class DataFrame:
 
     @property
     def columns(self):
+        """
+        List of column headers, same as pandas.columns
+        """
         return sorted(list(self._data.keys()))
 
     @columns.setter
-    def columns(self, iter):
+    def columns(self, iterator):
         new = {}
-        for a, b in zip(self.columns, iter):
+        for a, b in zip(self.columns, iterator):
             new[b] = self._data[a]
         self._data = new
 

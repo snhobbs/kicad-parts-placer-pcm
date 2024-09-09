@@ -48,7 +48,7 @@ def check_for_button():
                 button_wx_item_id,
                 Meta.toolname,
                 bm,
-                Meta.short_desciption,
+                Meta.short_description,
                 wx.ITEM_NORMAL,
             )
             top_tb.Bind(wx.EVT_TOOL, callback, id=button_wx_item_id)
