@@ -16,7 +16,7 @@ import kicad_parts_placer_
 import _version
 
 _log = logging.getLogger("kicad_partsplacer-pcm")
-_log.setLevel(logging.DEBUG)
+_log.setLevel(logging.INFO)
 
 _board = None
 
@@ -103,7 +103,6 @@ class MyPanel(wx.Panel):
     """
 
     def __init__(self, parent):
-        print("MyPanel.__init__")
         _log.info("MyPanel.__init__")
         super().__init__(parent)
         self.settings = Settings()
@@ -373,7 +372,7 @@ class Plugin(pcbnew.ActionPlugin):
         self.description = Meta.body
 
     def defaults(self):
-        print("HELLO")
+        pass
 
     def Run(self):
         dlg = MyDialog(None, title=Meta.title)
