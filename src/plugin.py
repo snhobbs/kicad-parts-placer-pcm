@@ -19,6 +19,8 @@ _log = logging.getLogger("kicad_partsplacer-pcm")
 _log.setLevel(logging.INFO)
 
 _board = None
+_frame_size = (800, 600)
+_frame_size_min = (500, 300)
 
 
 def read_csv(f):
@@ -65,32 +67,14 @@ class Meta:
 
     toolname = "kicadpartsplacer"
     title = "Parts Placer"
-    body = "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet.\
-            Enforce a form-factor, keep mechanical placements under version control, and allow \
-            updating of a templated design based. Easily enforce grids or maintain test point patterns."
+    body = "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. \
+Enforce a form-factor, keep mechanical placements under version control, and allow \
+updating of a templated design based. Easily enforce grids or maintain test point patterns."
     about_text = "Declaratively place components using a spreadsheet"
     frame_title = "Parts Placer"
     short_description = "Parts Placer"
     website = "https://www.thejigsapp.com"
     version = _version.__version__
-
-
-class SuccessPanel(wx.Panel):
-    """
-    Panel to show after the plugin has run successfully
-    """
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        # Static text for success message
-        success_text = "Submission successful!"
-        success_label = wx.StaticText(self, label=success_text)
-
-        # Sizer for layout
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(success_label, 0, wx.ALL, 5)
-        self.SetSizer(sizer)
 
 
 def setattr_keywords(obj, name, value):
@@ -181,9 +165,6 @@ class MyPanel(wx.Panel):
         sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
 
         self.SetSizer(sizer)
-        # self.SetSizeHints(1000,1000)
-        # self.SetMinSize((1000, 1000))  # Set a minimum width and height for the frame
-        self.Layout()
 
     def on_checkbox_toggle(self, _):
         self.settings.use_aux_origin = self.use_aux_origin_cb.GetValue()
@@ -343,8 +324,10 @@ class MyDialog(wx.Dialog):
         # Sizer for layout
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(notebook, 1, wx.EXPAND | wx.ALL, 10)
+
         self.SetSizer(sizer)
-        self.SetSizeHints(500, 500)  # Set minimum size hints
+        self.SetMinSize(_frame_size_min)
+        self.SetSize(_frame_size)
 
     def on_close(self, event):
         self.EndModal(wx.ID_CANCEL)
@@ -353,7 +336,6 @@ class MyDialog(wx.Dialog):
     # def ShowSuccessPanel(self):
     #    self.GetSizer().GetChildren()[0].GetWindow().Destroy()
     #    self.GetSizer().Insert(0, self.success_panel)
-    #    self.Layout()
 
     def on_maximize(self, _):
         self.fit_to_screen()
