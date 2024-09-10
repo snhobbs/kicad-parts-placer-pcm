@@ -221,7 +221,7 @@ class MyPanel(wx.Panel):
             origin = pcbnew.ToMM(ds.GetAuxOrigin())
 
         _log.debug("Save Board")
-        pcbnew.SaveBoard(output_file_path.as_posix(), board)
+        pcbnew.SaveBoard(str(output_file_path), board)
 
         if not file_path.exists():
             wx.MessageBox(
@@ -233,11 +233,27 @@ class MyPanel(wx.Panel):
 
         components_df = read_csv(file_path)
         components_df.columns = [pt.lower().strip() for pt in components_df.columns]
-        components_df["x"] = [float(pt) for pt in components_df["x"]]
-        components_df["y"] = [float(pt) for pt in components_df["y"]]
 
-        if "rotation" in components_df.columns:
-            components_df["rotation"] = [float(pt) for pt in components_df["rotation"]]
+        required_fields = ["x", "y", "ref des"]
+
+        errors = []
+        for field in required_fields:
+            if field not in components_df.columns:
+                errors.append(f"Missing Field: {field}")
+
+        if len(errors):
+            wx.MessageBox(
+                *errors,
+                "Error",
+                wx.OK | wx.ICON_ERROR,
+            )
+            return
+
+        for field in ["x", "y", "rotation"]:
+            if field not in components_df.columns:
+                components_df[field] = [0.0] * len(components_df)
+                continue
+            components_df[field] = [float(pt) for pt in components_df[field]]
 
         board = kicad_parts_placer_.place_parts(
             board, components_df=components_df, origin=origin
@@ -251,7 +267,7 @@ class MyPanel(wx.Panel):
             )
 
         wx.MessageBox(
-            "PCB Sucessfully Created",
+            f"Moved: {len(components_df)}\nBackup PCB: {str(output_file_path)}",
             "Success",
             wx.OK,
         )
@@ -367,8 +383,8 @@ class Plugin(pcbnew.ActionPlugin):
         self.show_toolbar_button = True
         icon_dir = Path(__file__).parent
         self.icon_file_path = icon_dir / "icon.png"
-        # assert self.icon_file_path.exists()
-        self.icon_file_name = self.icon_file_path.as_posix()
+        assert self.icon_file_path.exists()
+        self.icon_file_name = str(self.icon_file_path)
         self.description = Meta.body
 
     def defaults(self):
