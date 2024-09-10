@@ -335,7 +335,7 @@ class MyDialog(wx.Dialog):
         notebook = wx.Notebook(self)
         tab_panel = MyPanel(notebook)
         about_panel = AboutPanel(notebook)
-        self.success_panel = SuccessPanel(notebook)
+        # self.success_panel = SuccessPanel(notebook)
 
         notebook.AddPage(tab_panel, "Main")
         notebook.AddPage(about_panel, "About")
@@ -350,10 +350,10 @@ class MyDialog(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
         event.Skip()
 
-    def ShowSuccessPanel(self):
-        self.GetSizer().GetChildren()[0].GetWindow().Destroy()
-        self.GetSizer().Insert(0, self.success_panel)
-        self.Layout()
+    # def ShowSuccessPanel(self):
+    #    self.GetSizer().GetChildren()[0].GetWindow().Destroy()
+    #    self.GetSizer().Insert(0, self.success_panel)
+    #    self.Layout()
 
     def on_maximize(self, _):
         self.fit_to_screen()
@@ -391,7 +391,16 @@ class Plugin(pcbnew.ActionPlugin):
         pass
 
     def Run(self):
-        dlg = MyDialog(None, title=Meta.title)
+        pcb_frame = None
+
+        try:
+            pcb_frame = [
+                x for x in wx.GetTopLevelWindows() if x.GetName() == "PcbFrame"
+            ][0]
+        except IndexError:
+            pass
+
+        dlg = MyDialog(pcb_frame, title=Meta.title)
         try:
             dlg.ShowModal()
 
