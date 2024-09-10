@@ -7,14 +7,9 @@ import wx
 import wx.aui
 from wx.lib import buttons
 import pcbnew
-import numpy as np
 
-# try:
-#    import pandas as pd
-# except ImportError:
-
-
-sys.path.append(Path(__file__).parent.absolute().as_posix())
+path_ = Path(__file__).parent.absolute()
+sys.path.append(str(path_))
 
 from dataframe_lite_ import DataFrame
 import kicad_parts_placer_
@@ -108,7 +103,8 @@ class MyPanel(wx.Panel):
     """
 
     def __init__(self, parent):
-        _log.debug("MyPanel.__init__")
+        print("MyPanel.__init__")
+        _log.info("MyPanel.__init__")
         super().__init__(parent)
         self.settings = Settings()
 
@@ -238,11 +234,11 @@ class MyPanel(wx.Panel):
 
         components_df = read_csv(file_path)
         components_df.columns = [pt.lower().strip() for pt in components_df.columns]
-        components_df["x"] = np.array(components_df["x"], dtype=float)
-        components_df["y"] = np.array(components_df["y"], dtype=float)
+        components_df["x"] = [float(pt) for pt in components_df["x"]]
+        components_df["y"] = [float(pt) for pt in components_df["y"]]
 
         if "rotation" in components_df.columns:
-            components_df["rotation"] = np.array(components_df["rotation"], dtype=float)
+            components_df["rotation"] = [float(pt) for pt in components_df["rotation"]]
 
         board = kicad_parts_placer_.place_parts(
             board, components_df=components_df, origin=origin
@@ -360,10 +356,10 @@ class Plugin(pcbnew.ActionPlugin):
     def __init__(self):
         super().__init__()
 
-        _log.setLevel(logging.DEBUG)
+        _log.setLevel(logging.INFO)
         _log.debug("Loading kicad_partsplacer")
 
-        self.logger = None
+        self.logger = _log
         self.config_file = None
 
         self.name = Meta.title
@@ -371,9 +367,13 @@ class Plugin(pcbnew.ActionPlugin):
         self.pcbnew_icon_support = hasattr(self, "show_toolbar_button")
         self.show_toolbar_button = True
         icon_dir = Path(__file__).parent
-        self.icon_file_name = (icon_dir / "icon.png").as_posix()
-        assert self.icon_file_name.exists()
+        self.icon_file_path = icon_dir / "icon.png"
+        # assert self.icon_file_path.exists()
+        self.icon_file_name = self.icon_file_path.as_posix()
         self.description = Meta.body
+
+    def defaults(self):
+        print("HELLO")
 
     def Run(self):
         dlg = MyDialog(None, title=Meta.title)

@@ -1,7 +1,5 @@
 import copy
 
-import numpy as np
-
 
 class DataFrame:
     """
@@ -22,11 +20,9 @@ class DataFrame:
             data = out
 
         for key in data:
-            out[key] = np.array(data[key])
+            out[key] = list(data[key])
 
         assert isinstance(data, dict)
-        # for value in data.values():
-        #    assert isinstance(value, np.array)
         self._data = copy.deepcopy(data)
 
     def __repr__(self):
