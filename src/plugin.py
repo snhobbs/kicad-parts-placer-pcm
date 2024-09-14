@@ -235,6 +235,16 @@ class MyPanel(wx.Panel):
             )
             return
 
+        missing_refs = kicad_parts_placer_.get_missing_references(board, components_df)
+        if len(missing_refs):
+            msg = f"References not found on board: {', '.join(missing_refs)}"
+            wx.MessageBox(
+                msg,
+                "Error",
+                wx.OK | wx.ICON_ERROR,
+            )
+            return
+
         board = kicad_parts_placer_.place_parts(
             board, components_df=components_df, origin=origin
         )
