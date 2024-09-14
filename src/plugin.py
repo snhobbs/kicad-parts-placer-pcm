@@ -8,6 +8,13 @@ import wx.aui
 from wx.lib import buttons
 import pcbnew
 
+"""x: posx, positionx, xpos, xposition, midx, xmid, x
+y: posy, positiony, ypos, yposition, midy, ymid, y
+rotation: rot, angle, rotate, rotation,
+side: layer, side,
+ref des: designator, reference designator, ref, ref des"""
+
+
 path_ = Path(__file__).parent.absolute()
 sys.path.append(str(path_))
 
@@ -16,19 +23,19 @@ import kicad_parts_placer_
 import _version
 
 _log = logging.getLogger("kicad_partsplacer-pcm")
-_log.setLevel(logging.INFO)
+_log.setLevel(logging.DEBUG)
 
 _board = None
 _frame_size = (800, 600)
 _frame_size_min = (500, 300)
 
 
-def read_csv(f):
+def read_csv(fname: str, **kwargs):
     """
     Basic CSV reading to dataframe
     """
-    with open(f, newline="", encoding="utf-8") as csvfile:
-        reader = csv.DictReader(csvfile)
+    with open(fname, newline="", encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile, **kwargs)
         return DataFrame(list(reader))
 
 
@@ -67,13 +74,16 @@ class Meta:
 
     toolname = "kicadpartsplacer"
     title = "Parts Placer"
-    body = "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. \
+    body = (
+        "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. \
 Enforce a form-factor, keep mechanical placements under version control, and allow \
-updating of a templated design based. Easily enforce grids or maintain test point patterns."
+updating of a templated design. Easily enforce grids or maintain test point patterns."
+    )
     about_text = "Declaratively place components using a spreadsheet"
     frame_title = "Parts Placer"
     short_description = "Parts Placer"
     website = "https://www.thejigsapp.com"
+    gitlink = "https://github.com/snhobbs/kicad-parts-placer-pcm"
     version = _version.__version__
 
 
@@ -213,28 +223,24 @@ class MyPanel(wx.Panel):
             return
 
         components_df = read_csv(file_path)
-        components_df.columns = [pt.lower().strip() for pt in components_df.columns]
-
-        required_fields = ["x", "y", "ref des"]
-
-        errors = []
-        for field in required_fields:
+        components_df.columns = kicad_parts_placer_.translate_header(
+            components_df.columns
+        )
+        components_df = kicad_parts_placer_.setup_dataframe(components_df)
+        for field in ["x", "y", "rotation"]:
             if field not in components_df.columns:
-                errors.append(f"Missing Field: {field}")
+                continue
+            components_df[field] = [float(pt) for pt in components_df[field]]
 
+        valid, errors = kicad_parts_placer_.check_input_valid(components_df)
         if len(errors):
+            msg = f"{'\n'.join(errors)}\n{', '.join(components_df.columns)}"
             wx.MessageBox(
-                *errors,
+                msg,
                 "Error",
                 wx.OK | wx.ICON_ERROR,
             )
             return
-
-        for field in ["x", "y", "rotation"]:
-            if field not in components_df.columns:
-                components_df[field] = [0.0] * len(components_df)
-                continue
-            components_df[field] = [float(pt) for pt in components_df[field]]
 
         board = kicad_parts_placer_.place_parts(
             board, components_df=components_df, origin=origin
@@ -279,25 +285,58 @@ class AboutPanel(wx.Panel):
         # Static text for about information
         message_text = wx.StaticText(self, label=Meta.about_text)
         version_text = wx.StaticText(self, label=f"Version: {Meta.version}")
+        body_text = wx.StaticText(self, label=Meta.body)
+        input_header_text = wx.StaticText(self, label="Input Format:")
+        input_header_body_text = wx.StaticText(
+            self, label="Note: White space and character case ignored"
+        )
 
-        pre_link_text = wx.StaticText(self, label="For more information visit: ")
+        list_ctrl = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
+        list_ctrl.InsertColumn(0, "Field", width=150)
+        list_ctrl.InsertColumn(1, "Alias", width=500)
+        list_ctrl.InsertColumn(2, "Required", width=100)
+
+        for key, value in kicad_parts_placer_._header_pseudonyms.items():
+            index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), key)
+            list_ctrl.SetItem(index, 1, ", ".join(value))
+            list_ctrl.SetItem(
+                index, 2, str(key in kicad_parts_placer_._required_columns)
+            )
+
         from wx.lib.agw.hyperlink import HyperLinkCtrl
 
+        pre_link_text = wx.StaticText(self, label="Brought to you by: ")
         link = HyperLinkCtrl(self, wx.ID_ANY, f"{Meta.website}", URL=Meta.website)
-
         link.SetColours(wx.BLUE, wx.BLUE, wx.BLUE)
+
+        pre_gh_link_text = wx.StaticText(self, label="Git Repo: ")
+        gh_link = HyperLinkCtrl(self, wx.ID_ANY, f"{Meta.gitlink}", URL=Meta.gitlink)
+        gh_link.SetColours(wx.BLUE, wx.BLUE, wx.BLUE)
+
         version_text.SetFont(bold)
+        body_text.SetFont(font)
         message_text.SetFont(font)
+        input_header_text.SetFont(bold)
+
         pre_link_text.SetFont(font)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(version_text, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(message_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(body_text, 2, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(input_header_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(input_header_body_text, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(list_ctrl, 1, wx.EXPAND, 5)
 
         link_sizer = wx.BoxSizer(wx.HORIZONTAL)
         link_sizer.Add(pre_link_text, 0, wx.EXPAND, 0)
         link_sizer.Add(link, 0, wx.EXPAND, 0)
         sizer.Add(link_sizer, 1, wx.EXPAND | wx.ALL, 5)
+
+        gh_link_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        gh_link_sizer.Add(pre_gh_link_text, 0, wx.EXPAND, 0)
+        gh_link_sizer.Add(gh_link, 0, wx.EXPAND, 0)
+        sizer.Add(gh_link_sizer, 1, wx.EXPAND | wx.ALL, 5)
 
         self.SetSizer(sizer)
 
@@ -353,7 +392,6 @@ class Plugin(pcbnew.ActionPlugin):
     def __init__(self):
         super().__init__()
 
-        _log.setLevel(logging.INFO)
         _log.debug("Loading kicad_partsplacer")
 
         self.logger = _log
