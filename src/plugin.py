@@ -90,7 +90,7 @@ class MyPanel(wx.Panel):
     """
 
     def __init__(self, parent):
-        _log.info("MyPanel.__init__")
+        _log.debug("MyPanel.__init__")
         super().__init__(parent)
         self.settings = Settings()
 
@@ -285,14 +285,30 @@ class AboutPanel(wx.Panel):
             10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD
         )
 
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
         # Static text for about information
-        message_text = wx.StaticText(self, label=Meta.about_text)
         version_text = wx.StaticText(self, label=f"Version: {Meta.version}")
+        version_text.SetFont(bold)
+        sizer.Add(version_text, 1, wx.EXPAND | wx.ALL, 5)
+
+        message_text = wx.StaticText(self, label=Meta.about_text)
+        message_text.SetFont(font)
+        sizer.Add(message_text, 1, wx.EXPAND | wx.ALL, 5)
+
         body_text = wx.StaticText(self, label=Meta.body)
+        body_text.SetFont(font)
+        sizer.Add(body_text, 5, wx.EXPAND | wx.ALL, 5)
+
         input_header_text = wx.StaticText(self, label="Input Format:")
+        input_header_text.SetFont(bold)
+        sizer.Add(input_header_text, 1, wx.EXPAND | wx.ALL, 5)
+
         input_header_body_text = wx.StaticText(
             self, label="Note: White space and character case ignored"
         )
+        input_header_body_text.SetFont(font)
+        sizer.Add(input_header_body_text, 1, wx.EXPAND | wx.ALL, 5)
 
         list_ctrl = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
         list_ctrl.InsertColumn(0, "Field", width=150)
@@ -305,42 +321,35 @@ class AboutPanel(wx.Panel):
             list_ctrl.SetItem(
                 index, 2, str(key in kicad_parts_placer_._required_columns)
             )
+        sizer.Add(list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
 
         from wx.lib.agw.hyperlink import HyperLinkCtrl
 
-        pre_link_text = wx.StaticText(self, label="Brought to you by: ")
-        link = HyperLinkCtrl(self, wx.ID_ANY, f"{Meta.website}", URL=Meta.website)
-        link.SetColours(wx.BLUE, wx.BLUE, wx.BLUE)
-
-        pre_gh_link_text = wx.StaticText(self, label="Git Repo: ")
-        gh_link = HyperLinkCtrl(self, wx.ID_ANY, f"{Meta.gitlink}", URL=Meta.gitlink)
-        gh_link.SetColours(wx.BLUE, wx.BLUE, wx.BLUE)
-
-        version_text.SetFont(bold)
-        body_text.SetFont(font)
-        message_text.SetFont(font)
-        input_header_text.SetFont(bold)
-
-        pre_link_text.SetFont(font)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(version_text, 1, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(message_text, 1, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(body_text, 2, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(input_header_text, 1, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(input_header_body_text, 1, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(list_ctrl, 1, wx.EXPAND, 5)
-
         link_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        pre_link_text = wx.StaticText(self, label="Brought to you by TheJigsApp: ")
+        pre_link_text.SetFont(font)
         link_sizer.Add(pre_link_text, 0, wx.EXPAND, 0)
+
+        link = HyperLinkCtrl(self, wx.ID_ANY, f"{Meta.website}", URL=Meta.website)
+        link.SetFont(font)
+        link.SetColours(wx.BLUE, wx.BLUE, wx.BLUE)
         link_sizer.Add(link, 0, wx.EXPAND, 0)
+
         sizer.Add(link_sizer, 1, wx.EXPAND | wx.ALL, 5)
 
         gh_link_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        gh_link_sizer.Add(pre_gh_link_text, 0, wx.EXPAND, 0)
-        gh_link_sizer.Add(gh_link, 0, wx.EXPAND, 0)
-        sizer.Add(gh_link_sizer, 1, wx.EXPAND | wx.ALL, 5)
 
+        gh_pre_link_text = wx.StaticText(self, label="Git Repo: ")
+        gh_pre_link_text.SetFont(font)
+        gh_link_sizer.Add(gh_pre_link_text, 0, wx.EXPAND, 0)
+
+        gh_link = HyperLinkCtrl(self, wx.ID_ANY, f"{Meta.gitlink}", URL=Meta.gitlink)
+        gh_link.SetFont(font)
+        gh_link.SetColours(wx.BLUE, wx.BLUE, wx.BLUE)
+        gh_link_sizer.Add(gh_link, 0, wx.EXPAND, 0)
+
+        sizer.Add(gh_link_sizer, 1, wx.EXPAND | wx.ALL, 5)
         self.SetSizer(sizer)
 
 
