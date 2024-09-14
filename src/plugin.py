@@ -8,13 +8,6 @@ import wx.aui
 from wx.lib import buttons
 import pcbnew
 
-"""x: posx, positionx, xpos, xposition, midx, xmid, x
-y: posy, positiony, ypos, yposition, midy, ymid, y
-rotation: rot, angle, rotate, rotation,
-side: layer, side,
-ref des: designator, reference designator, ref, ref des"""
-
-
 path_ = Path(__file__).parent.absolute()
 sys.path.append(str(path_))
 

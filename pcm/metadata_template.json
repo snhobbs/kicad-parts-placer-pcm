@@ -1,34 +1,34 @@
 {
-    "$schema": "https://go.kicad.org/pcm/schemas/v1",
-    "name": "Parts Placer",
-    "description": "Declaratively place components using a spreadsheet",
-    "description_full": "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. Enforce a form-factor, keep mechanical placements under version control, and allow updating of a templated design. Easily enforce grids or maintain test point patterns.",
-    "identifier": "com.github.TheJigsApp.kicad-parts-placer-pcm",
-    "type": "plugin",
-    "author": {
-      "name": "The JigsApp",
-      "contact": {
-        "web": "https://www.thejigsapp.com",
-        "github": "https://github.com/TheJigsApp"
+  "$schema": "https://go.kicad.org/pcm/schemas/v1",
+  "name": "Parts Placer",
+  "description": "Declaratively place components using a spreadsheet",
+  "description_full": "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. Enforce a form-factor, keep mechanical placements under version control, and allow updating of a templated design. Easily enforce grids or maintain test point patterns.",
+  "identifier": "com.github.TheJigsApp.kicad-parts-placer-pcm",
+  "type": "plugin",
+  "author": {
+    "name": "Simon Hobbs",
+    "contact": {
+      "web": "https://www.thejigsapp.com",
+      "github": "https://github.com/snhobbs"
+    }
+  },
+  "maintainer": {
+    "name": "Simon Hobbs",
+    "contact": {
+      "web": "https://www.thejigsapp.com",
+      "github": "https://github.com/snhobbs"
+    }
+  },
+  "license": "LGPL-2.1",
+  "resources": {
+    "homepage": "https://github.com/TheJigsApp/kicad-parts-placer-pcm"
+  },
+  "versions": [
+      {
+        "version": "0.1.1",
+        "status": "stable",
+        "kicad_version": "8.0",
+        "download_url": "https://github.com/TheJigsApp/kicad-parts-placer-pcm/releases/download/v0.1.1/kicad-parts-placer-0.1.1-pcm.zip"
       }
-    },
-    "maintainer": {
-      "name": "The JigsApp",
-      "contact": {
-        "web": "https://www.thejigsapp.com",
-        "github": "https://github.com/TheJigsApp"
-      }
-    },
-    "license": "LGPL-2.1",
-    "resources": {
-      "homepage": "https://github.com/TheJigsApp/kicad-parts-placer-pcm"
-    },
-    "versions": [
-        {
-          "version": "0.1.1",
-          "status": "stable",
-          "kicad_version": "8.0",
-          "download_url": "https://github.com/TheJigsApp/kicad-parts-placer-pcm/releases/download/v0.1.1/kicad-parts-placer-0.1.1-pcm.zip"
-        }
-    ]
+  ]
 }
