@@ -7,6 +7,7 @@ import wx
 import wx.aui
 from wx.lib import buttons
 import pcbnew
+import dataclasses
 
 path_ = Path(__file__).parent.absolute()
 sys.path.append(str(path_))
@@ -60,24 +61,28 @@ class Settings:
         self.group = False
 
 
+@dataclasses.dataclass
 class Meta:
     """
     Information about package
     """
 
-    toolname = "kicadpartsplacer"
-    title = "Parts Placer"
-    body = (
+    toolname: str = "kicadpartsplacer"
+    title: str = "Parts Placer"
+    body: str = (
         "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. \
 Enforce a form-factor, keep mechanical placements under version control, and allow \
 updating of a templated design. Easily enforce grids or maintain test point patterns."
     )
-    about_text = "Declaratively place components using a spreadsheet"
-    frame_title = "Parts Placer"
-    short_description = "Parts Placer"
-    website = "https://www.thejigsapp.com"
-    gitlink = "https://github.com/snhobbs/kicad-parts-placer-pcm"
-    version = _version.__version__
+    about_text: str = "Declaratively place components using a spreadsheet"
+    short_description: str = "Parts Placer"
+    frame_title: str = "Parts Placer"
+    website: str = "https://www.thejigsapp.com"
+    gitlink: str = "https://github.com/snhobbs/kicad-parts-placer-pcm"
+    version: str = _version.__version__
+    category: str = "Write PCB"
+    icon_dir: Path = Path(__file__).parent
+    icon_file_path: Path = icon_dir / "icon-24x24.png"
 
 
 def setattr_keywords(obj, name, value):
@@ -130,8 +135,8 @@ class MyPanel(wx.Panel):
         # Buttons
         self.submit_button = buttons.GenButton(self, label="Submit")
         self.cancel_button = buttons.GenButton(self, label="Cancel")
-        self.submit_button.SetBackgroundColour(wx.Colour(150, 225, 150))
-        self.cancel_button.SetBackgroundColour(wx.Colour(225, 150, 150))
+        self.submit_button.SetBackgroundColour(wx.Colour(100, 225, 100))
+        self.cancel_button.SetBackgroundColour(wx.Colour(225, 100, 100))
         self.submit_button.Bind(wx.EVT_BUTTON, self.on_submit)
         self.cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel)
 
@@ -363,17 +368,17 @@ class MyDialog(wx.Dialog):
             parent, title=title, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         )
 
+        # Sizer for layout
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+
         # Create a notebook with two tabs
         notebook = wx.Notebook(self)
         tab_panel = MyPanel(notebook)
         about_panel = AboutPanel(notebook)
-        # self.success_panel = SuccessPanel(notebook)
 
         notebook.AddPage(tab_panel, "Main")
         notebook.AddPage(about_panel, "About")
 
-        # Sizer for layout
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(notebook, 1, wx.EXPAND | wx.ALL, 10)
 
         self.SetSizer(sizer)
@@ -383,10 +388,6 @@ class MyDialog(wx.Dialog):
     def on_close(self, event):
         self.EndModal(wx.ID_CANCEL)
         event.Skip()
-
-    # def ShowSuccessPanel(self):
-    #    self.GetSizer().GetChildren()[0].GetWindow().Destroy()
-    #    self.GetSizer().Insert(0, self.success_panel)
 
     def on_maximize(self, _):
         self.fit_to_screen()
@@ -400,6 +401,16 @@ class MyDialog(wx.Dialog):
         self.SetSize(wx.Size(screen_width, screen_height))
 
 
+def get_gui_frame(name: str = "PcbFrame"):
+    pcb_frame = None
+
+    try:
+        pcb_frame = [x for x in wx.GetTopLevelWindows() if x.GetName() == name][0]
+    except IndexError:
+        pass
+    return pcb_frame
+
+
 class Plugin(pcbnew.ActionPlugin):
     def __init__(self):
         super().__init__()
@@ -410,29 +421,19 @@ class Plugin(pcbnew.ActionPlugin):
         self.config_file = None
 
         self.name = Meta.title
-        self.category = "Write PCB"
+        self.category = Meta.category
         self.pcbnew_icon_support = hasattr(self, "show_toolbar_button")
         self.show_toolbar_button = True
-        icon_dir = Path(__file__).parent
-        self.icon_file_path = icon_dir / "icon.png"
-        assert self.icon_file_path.exists()
-        self.icon_file_name = str(self.icon_file_path)
         self.description = Meta.body
+
+        # assert icon_file_path.exists()
+        self.icon_file_name = str(Meta.icon_file_path)
 
     def defaults(self):
         pass
 
     def Run(self):
-        pcb_frame = None
-
-        try:
-            pcb_frame = [
-                x for x in wx.GetTopLevelWindows() if x.GetName() == "PcbFrame"
-            ][0]
-        except IndexError:
-            pass
-
-        dlg = MyDialog(pcb_frame, title=Meta.title)
+        dlg = MyDialog(get_gui_frame(name="PcbFrame"), title=Meta.title)
         try:
             dlg.ShowModal()
 

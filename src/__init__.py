@@ -1,7 +1,6 @@
 import sys
 import threading
 import time
-from pathlib import Path
 
 import wx
 import wx.aui
@@ -10,8 +9,6 @@ from .plugin import Plugin, Meta
 
 plugin = Plugin()
 plugin.register()
-
-icon_ = Path(__file__) / "icon-24x24.png"
 
 
 def check_for_button():
@@ -29,7 +26,7 @@ def check_for_button():
 
     while not wx.GetApp():
         time.sleep(1)
-    bm = wx.Bitmap(icon_.as_posix(), wx.BITMAP_TYPE_PNG)
+    bm = wx.Bitmap(Meta.icon_file_path.as_posix(), wx.BITMAP_TYPE_PNG)
     button_wx_item_id = 0
 
     from pcbnew import ID_H_TOOLBAR

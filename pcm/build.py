@@ -4,14 +4,20 @@ from pathlib import Path
 import json
 import re
 
+download_url = "https://github.com/TheJigsApp/kicad-parts-placer-pcm/releases/download/"
+
+
+def make_release_dir(version):
+    return f"v{version}/kicad-parts-placer-{version}-pcm"
+
+
 src_path = (Path(__file__).parent.parent / "src").absolute()
 version_path = src_path / "_version.py"
-
-metadata_template = Path(__file__).parent / "metadata_template.json"
-build_path = Path("build").absolute()
-
 icons_path = src_path.parent / "icons"
 resources_path = icons_path
+metadata_template = Path(__file__).parent / "metadata_template.json"
+
+build_path = Path("build").absolute()
 
 # Delete build and recreate
 try:
@@ -25,6 +31,9 @@ os.makedirs(build_path / "plugin" / "resources")
 shutil.copytree(src_path, build_path / "plugin" / "plugins")
 shutil.copy(
     icons_path / "icon-64x64.png", build_path / "plugin" / "resources" / "icon.png"
+)
+shutil.copy(
+    icons_path / "icon-24x24.png", build_path / "plugin" / "plugins" / "icon-24x24.png"
 )
 
 # Clean out any __pycache__ or .pyc files (https://stackoverflow.com/a/41386937)
@@ -57,9 +66,7 @@ else:
 md["versions"][0].update(
     {
         "version": verstr,
-        "download_url": "https://github.com/TheJigsApp/kicad-parts-placer-pcm/releases/download/v{0}/kicad-parts-placer-{0}-pcm.zip".format(
-            verstr
-        ),
+        "download_url": download_url + make_release_dir(verstr) + ".zip",
     }
 )
 
@@ -68,7 +75,7 @@ with metadata.open("w") as of:
     json.dump(md, of, indent=2)
 
 # Zip all files
-pcm_name = "kicad-parts-placer-{0}-pcm".format(md["versions"][0]["version"])
+pcm_name = make_release_dir(verstr)
 pcm_path = build_path / pcm_name
 zip_file = shutil.make_archive(pcm_path, "zip", build_path / "plugin")
 
