@@ -6,7 +6,7 @@ on:
       - 'v*'  # Trigger on version tags like v0.1.4
 
 env:
-  PACKAGE_NAME: kicad_parts_placer
+  PACKAGE_NAME: kicad-parts-placer
 
 jobs:
   build-and-release:
