@@ -1,0 +1,9 @@
+{
+  "ref": "refs/tags/v0.1.12",
+  "repository": {
+    "full_name": "TheJigsApp/kicad-parts-placer-pcm"
+  },
+  "head_commit": {
+    "id": "deadbeef"
+  }
+}

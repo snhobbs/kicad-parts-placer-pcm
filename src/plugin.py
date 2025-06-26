@@ -7,7 +7,7 @@ import wx
 import wx.aui
 from wx.lib import buttons
 import pcbnew
-import dataclasses
+from dataclasses import dataclass
 
 path_ = Path(__file__).parent.absolute()
 sys.path.append(str(path_))
@@ -19,7 +19,7 @@ import _version
 _log = logging.getLogger("kicad_partsplacer-pcm")
 _log.setLevel(logging.DEBUG)
 
-_board = None
+_g_board = None
 _frame_size = (800, 600)
 _frame_size_min = (500, 300)
 
@@ -37,8 +37,8 @@ def set_board(board):
     """
     Sets the board global.
     """
-    global _board
-    _board = board
+    global _g_board
+    _g_board = board
 
 
 def get_board():
@@ -46,22 +46,22 @@ def get_board():
     Use instead of pcbnew.GetBoard to allow
     command line use.
     """
-    return _board
+    return _g_board
 
 
+@dataclass
 class Settings:
     """
     All the options that can be passed
     """
 
-    def __init__(self):
-        self.use_aux_origin: bool = False
-        self.group_name = "parts placer"
-        self.mirror = False
-        self.group = False
+    use_aux_origin: bool = False
+    group_name: str = "parts placer"
+    mirror: bool = False
+    group: bool = False
 
 
-@dataclasses.dataclass
+@dataclass
 class Meta:
     """
     Information about package
@@ -109,7 +109,7 @@ class MyPanel(wx.Panel):
             if wd.exists():
                 dir_ = wd.parent
         default_file_path = dir_ / f"{Meta.toolname}-report.csv"
-        default_board_file_path = dir_ / f"{Meta.toolname}.kicad_pcb"
+        dir_ / f"{Meta.toolname}.kicad_pcb"
 
         file_label = wx.StaticText(self, label="File Input:")
         self.file_selector = wx.FilePickerCtrl(
@@ -119,15 +119,6 @@ class MyPanel(wx.Panel):
             path=default_file_path.as_posix(),
         )
         self.file_selector.SetPath(default_file_path.as_posix())
-
-        file_output_label = wx.StaticText(self, label="File Backup:")
-        self.file_output_selector = wx.FilePickerCtrl(
-            self,
-            style=wx.FLP_SAVE | wx.FLP_USE_TEXTCTRL,
-            wildcard="KiCAD PCB (*.kicad_pcb)|*.kicad_pcb",
-            path=default_board_file_path.as_posix(),
-        )
-        self.file_output_selector.SetPath(default_board_file_path.as_posix())
 
         # Lorem Ipsum text
         lorem_text = wx.StaticText(self, label=Meta.body)
@@ -145,7 +136,7 @@ class MyPanel(wx.Panel):
         button_sizer.Add(self.submit_button, 0, wx.ALL | wx.EXPAND, 5)
         button_sizer.Add(self.cancel_button, 0, wx.ALL, 5)
 
-        # Origin selectiondd
+        # Origin selection
         self.use_aux_origin_cb = wx.CheckBox(self, label="Use drill/place file origin")
         self.use_aux_origin_cb.SetValue(True)
         self.settings.use_aux_origin = self.use_aux_origin_cb.GetValue()
@@ -166,9 +157,6 @@ class MyPanel(wx.Panel):
         sizer.Add(file_label, 0, wx.ALL, 5)
         sizer.Add(self.file_selector, 0, wx.EXPAND | wx.ALL, 5)
 
-        sizer.Add(file_output_label, 0, wx.ALL, 5)
-        sizer.Add(self.file_output_selector, 0, wx.EXPAND | wx.ALL, 5)
-
         sizer.Add(lorem_text, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
 
@@ -182,11 +170,10 @@ class MyPanel(wx.Panel):
 
     def on_submit(self, _):
         file_path = Path(self.file_selector.GetPath())
-        output_file_path = Path(self.file_output_selector.GetPath())
 
-        if not file_path or not output_file_path:
+        if not file_path:
             wx.MessageBox(
-                "Please select an input and output file.",
+                "Please select an input file. Centroids can be used directly.",
                 "Error",
                 wx.OK | wx.ICON_ERROR,
             )
@@ -209,9 +196,6 @@ class MyPanel(wx.Panel):
             ds = board.GetDesignSettings()
             origin = pcbnew.ToMM(ds.GetAuxOrigin())
 
-        _log.debug("Save Board")
-        pcbnew.SaveBoard(str(output_file_path), board)
-
         if not file_path.exists():
             wx.MessageBox(
                 "Spreadsheet not found",
@@ -228,7 +212,11 @@ class MyPanel(wx.Panel):
         for field in ["x", "y", "rotation"]:
             if field not in components_df.columns:
                 continue
-            components_df[field] = [float(pt) for pt in components_df[field]]
+            try:
+                components_df[field] = [float(pt) for pt in components_df[field]]
+            except ValueError:
+                msg = f"Value in {field} column cannot be cast to float"
+                _log.error(msg)
 
         valid, errors = kicad_parts_placer_.check_input_valid(components_df)
         if len(errors):
@@ -260,12 +248,6 @@ class MyPanel(wx.Panel):
             board = kicad_parts_placer_.group_parts(
                 board, components_df, group_name=group_name
             )
-
-        wx.MessageBox(
-            f"Moved: {len(components_df)}\nBackup PCB: {str(output_file_path)}",
-            "Success",
-            wx.OK,
-        )
 
         self.GetTopLevelParent().EndModal(wx.ID_OK)
         # self.GetTopLevelParent().EndModal(wx.ID_CANCEL)
@@ -446,11 +428,16 @@ class Plugin(pcbnew.ActionPlugin):
 
 
 if __name__ == "__main__":
-    logging.basicConfig()
+    import locale
+
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
     _log.setLevel(logging.DEBUG)
+    locale.setlocale(locale.LC_ALL, "")  # For internationalized number/date parsing
 
     if len(sys.argv) > 1:
         set_board(pcbnew.LoadBoard(sys.argv[1]))
-    app = wx.App()
+
+    app = wx.App(False)  # False = don't redirect stdout/stderr
+    app.SetAppName("KiCadPartsPlacer")
     p = Plugin()
     p.Run()

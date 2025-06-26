@@ -45,7 +45,7 @@ class DataFrame:
         return list(self._data.keys())
 
     def __len__(self):
-        return len(self._data[self.columns[0]])
+        return max([len(self._data[pt]) for pt in self.columns])
 
     def iterrows(self):
         for i in range(0, len(self)):

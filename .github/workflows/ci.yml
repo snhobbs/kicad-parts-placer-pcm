@@ -1,0 +1,42 @@
+name: Build KiCad PCM Package
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v0.1.4
+
+env:
+  PACKAGE_NAME: kicad_parts_placer
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Needed to upload to GitHub Releases
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF##*/}"              # e.g., "v0.1.4"
+          VERSION="${TAG#v}"                   # strip leading "v"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build PCM package
+        run: python3 pcm/build.py
+
+      - name: Upload PCM package to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}-pcm.zip
