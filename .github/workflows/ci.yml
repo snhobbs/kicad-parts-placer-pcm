@@ -42,4 +42,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}-pcm.zip
+            $GITHUB_WORKSPACE/build/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}-pcm.zip
