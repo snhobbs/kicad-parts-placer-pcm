@@ -27,19 +27,31 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install bump2version
+        run: pip install bump2version
+
       - name: Extract version from tag
         id: version
         run: |
           TAG="${GITHUB_REF##*/}"              # e.g., "v0.1.4"
           VERSION="${TAG#v}"                   # strip leading "v"
+          echo "VERSION=$VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: Roll Version
+        run: |
+          bump2version --allow-dirty --new-version ${{env.VERSION}} patch src/_version.py
+
       - name: Build PCM package
-        run: python3 pcm/build.py
+        run: |
+          python3 ${{ github.workspace }}/pcm/build.py
+          echo "Built package:"
+          ls -lh ${{ github.workspace }}/build/*
+
 
       - name: Upload PCM package to release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ github.workspace }}/build/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}-pcm.zip
+            ${{ github.workspace }}/build/v${{ env.VERSION }}/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}-pcm.zip
