@@ -2,26 +2,26 @@
   "$schema": "https://go.kicad.org/pcm/schemas/v1",
   "name": "Parts Placer",
   "description": "Declaratively place components using a spreadsheet",
-  "description_full": "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. Enforce a form-factor, keep mechanical placements under version control, and allow updating of a templated design based. Easily enforce grids or maintain test point patterns.",
+  "description_full": "Flip, mirror, move, rotate, and move components based off inputs from a spreadsheet. Enforce a form-factor, keep mechanical placements under version control, and allow updating of a templated based design. Easily enforce grids or maintain test point patterns.",
   "identifier": "com.github.TheJigsApp.kicad-parts-placer-pcm",
   "type": "plugin",
   "author": {
-    "name": "Simon Hobbs",
+    "name": "The JigsApp",
     "contact": {
       "web": "https://www.thejigsapp.com",
-      "github": "https://github.com/snhobbs"
+      "github": "https://github.com/TheJigsApp"
     }
   },
   "maintainer": {
-    "name": "Simon Hobbs",
+    "name": "The JigsApp",
     "contact": {
       "web": "https://www.thejigsapp.com",
-      "github": "https://github.com/snhobbs"
+      "github": "https://github.com/TheJigsApp"
     }
   },
   "license": "LGPL-2.1",
   "resources": {
-    "homepage": "https://github.com/snhobbs/kicad-parts-placer-pcm"
+    "homepage": "https://github.com/TheJigsApp/kicad-parts-placer-pcm"
   },
   "versions": [
     {
