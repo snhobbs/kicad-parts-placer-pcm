@@ -302,11 +302,11 @@ class AboutPanel(wx.Panel):
         list_ctrl.InsertColumn(1, "Alias", width=500)
         list_ctrl.InsertColumn(2, "Required", width=100)
 
-        for key, value in kicad_parts_placer_._header_pseudonyms.items():
+        for key, value in kicad_parts_placer_._HEADER_PSEUDONYMS.items():
             index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), key)
             list_ctrl.SetItem(index, 1, ", ".join(value))
             list_ctrl.SetItem(
-                index, 2, str(key in kicad_parts_placer_._required_columns)
+                index, 2, str(key in kicad_parts_placer_._REQUIRED_COLUMNS)
             )
         sizer.Add(list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
 
